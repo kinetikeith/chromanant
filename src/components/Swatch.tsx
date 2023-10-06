@@ -1,7 +1,9 @@
 import { Casino, LockOpenOutlined, LockOutlined, TuneOutlined } from '@mui/icons-material';
-import { Box, Container, IconButton, Stack, styled } from '@mui/material';
+import { Box, Container, IconButton, Stack, alpha, styled } from '@mui/material';
+import type { IconButtonProps } from '@mui/material';
 import type { Color } from 'chroma-js';
 import chroma from 'chroma-js';
+import { ReactNode } from 'react';
 
 export interface SwatchValue {
   color: Color;
@@ -17,16 +19,42 @@ interface SwatchProps {
 const SwatchControlContainer = styled(Container)(({ theme }) => ({
   opacity: '0',
   transition: theme.transitions.create('opacity', {
-    duration: theme.transitions.duration.shortest,
+    duration: theme.transitions.duration.short,
   }),
   '&:hover': {
     opacity: '1',
   },
 }));
 
+interface SwatchButtonProps extends IconButtonProps {
+  isDark: boolean;
+}
+
+const SwatchButton = styled(IconButton, {
+  shouldForwardProp: (prop) => prop !== 'isDark',
+})<SwatchButtonProps>(({ theme, isDark, disableRipple }) => {
+  const color = isDark ? '#000' : '#fff';
+  return {
+    color,
+    // Below is from Mui source code for IconButton
+    ...(!disableRipple && {
+      '&:hover': {
+        backgroundColor: alpha(color, theme.palette.action.hoverOpacity),
+        '@media (hover: none)': {
+          backgroundColor: 'transparent',
+        },
+      },
+    }),
+    '&.Mui-disabled': {
+      color: alpha(color, theme.palette.action.disabledOpacity),
+    },
+  };
+});
+
 export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
-  const isDarkText = value.color.luminance() > 0.35;
+  const isDark = value.color.luminance() > 0.179;
   const SwatchContent = isHorizontal ? SwatchContentHorizontal : SwatchContentVertical;
+
   return (
     <Box
       sx={{
@@ -36,30 +64,34 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
       }}
     >
       <SwatchContent>
-        <IconButton sx={{ color: isDarkText ? '#000' : '#fff' }}>
+        <SwatchButton isDark={isDark}>
           <TuneOutlined />
-        </IconButton>
-        <IconButton
-          sx={{ color: isDarkText ? '#000' : '#fff' }}
+        </SwatchButton>
+        <SwatchButton
+          isDark={isDark}
           disabled={value.isLocked}
           onClick={() => setValue({ ...value, color: chroma.random() })}
         >
           <Casino />
-        </IconButton>
-        <IconButton
-          sx={{ color: isDarkText ? '#000' : '#fff' }}
+        </SwatchButton>
+        <SwatchButton
+          isDark={isDark}
           onClick={() => {
             setValue({ ...value, isLocked: !value.isLocked });
           }}
         >
           {value.isLocked ? <LockOutlined /> : <LockOpenOutlined />}
-        </IconButton>
+        </SwatchButton>
       </SwatchContent>
     </Box>
   );
 }
 
-function SwatchContentVertical({ children }) {
+interface SwatchContentProps {
+  children: ReactNode;
+}
+
+function SwatchContentVertical({ children }: SwatchContentProps) {
   return (
     <SwatchControlContainer sx={{ height: '100%' }}>
       <Stack
@@ -75,7 +107,7 @@ function SwatchContentVertical({ children }) {
   );
 }
 
-function SwatchContentHorizontal({ children }) {
+function SwatchContentHorizontal({ children }: SwatchContentProps) {
   return (
     <SwatchControlContainer sx={{ height: '100%' }}>
       <Stack
