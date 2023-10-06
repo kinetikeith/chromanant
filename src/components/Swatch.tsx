@@ -1,29 +1,58 @@
-import { Layers, Palette } from '@mui/icons-material';
-import { Box, Container, IconButton, Stack } from '@mui/material';
+import { Casino, LockOpenOutlined, LockOutlined, TuneOutlined } from '@mui/icons-material';
+import { Box, Container, IconButton, Stack, styled } from '@mui/material';
 import type { Color } from 'chroma-js';
+import chroma from 'chroma-js';
+
+export interface SwatchValue {
+  color: Color;
+  isLocked: boolean;
+}
 
 interface SwatchProps {
-  color: Color;
+  value: SwatchValue;
+  setValue: (value: SwatchValue) => void;
   isHorizontal: boolean;
 }
 
-export default function Swatch({ color, isHorizontal }: SwatchProps) {
-  const isDarkText = color.luminance() > 0.3;
+const SwatchControlContainer = styled(Container)(({ theme }) => ({
+  opacity: '0',
+  transition: theme.transitions.create('opacity', {
+    duration: theme.transitions.duration.shortest,
+  }),
+  '&:hover': {
+    opacity: '1',
+  },
+}));
+
+export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
+  const isDarkText = value.color.luminance() > 0.35;
   const SwatchContent = isHorizontal ? SwatchContentHorizontal : SwatchContentVertical;
   return (
     <Box
       sx={{
-        backgroundColor: color.hex('rgb'),
+        backgroundColor: value.color.hex('rgb'),
         width: '100%',
         height: '100%',
       }}
     >
       <SwatchContent>
         <IconButton sx={{ color: isDarkText ? '#000' : '#fff' }}>
-          <Palette />
+          <TuneOutlined />
         </IconButton>
-        <IconButton sx={{ color: isDarkText ? '#000' : '#fff' }}>
-          <Layers />
+        <IconButton
+          sx={{ color: isDarkText ? '#000' : '#fff' }}
+          disabled={value.isLocked}
+          onClick={() => setValue({ ...value, color: chroma.random() })}
+        >
+          <Casino />
+        </IconButton>
+        <IconButton
+          sx={{ color: isDarkText ? '#000' : '#fff' }}
+          onClick={() => {
+            setValue({ ...value, isLocked: !value.isLocked });
+          }}
+        >
+          {value.isLocked ? <LockOutlined /> : <LockOpenOutlined />}
         </IconButton>
       </SwatchContent>
     </Box>
@@ -32,7 +61,7 @@ export default function Swatch({ color, isHorizontal }: SwatchProps) {
 
 function SwatchContentVertical({ children }) {
   return (
-    <Container sx={{ height: '100%' }}>
+    <SwatchControlContainer sx={{ height: '100%' }}>
       <Stack
         direction="column"
         alignItems="center"
@@ -42,13 +71,13 @@ function SwatchContentVertical({ children }) {
       >
         {children}
       </Stack>
-    </Container>
+    </SwatchControlContainer>
   );
 }
 
 function SwatchContentHorizontal({ children }) {
   return (
-    <Container sx={{ height: '100%' }}>
+    <SwatchControlContainer sx={{ height: '100%' }}>
       <Stack
         direction="row"
         alignItems="center"
@@ -58,6 +87,6 @@ function SwatchContentHorizontal({ children }) {
       >
         {children}
       </Stack>
-    </Container>
+    </SwatchControlContainer>
   );
 }
