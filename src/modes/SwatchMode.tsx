@@ -29,7 +29,7 @@ export default function SwatchMode({ direction, values, setValues }: SwatchModeP
       alignItems="center"
       justifyContent="center"
       tabIndex={-1}
-      sx={{ height: '100%', width: '100%' }}
+      sx={{ height: '100%', width: '100%', '&:focus': { outline: 'none' } }}
       onKeyUp={(e) => {
         if (e.code === 'Space') {
           randomizeColors();
