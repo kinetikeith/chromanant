@@ -30,6 +30,10 @@ interface SwatchButtonProps extends IconButtonProps {
   isDark: boolean;
 }
 
+interface SwatchContentProps {
+  children: ReactNode;
+}
+
 const SwatchButton = styled(IconButton, {
   shouldForwardProp: (prop) => prop !== 'isDark',
 })<SwatchButtonProps>(({ theme, isDark, disableRipple }) => {
@@ -85,10 +89,6 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
       </SwatchContent>
     </Box>
   );
-}
-
-interface SwatchContentProps {
-  children: ReactNode;
 }
 
 function SwatchContentVertical({ children }: SwatchContentProps) {
