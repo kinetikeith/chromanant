@@ -1,9 +1,9 @@
 import { Casino, LockOpenOutlined, LockOutlined, TuneOutlined } from '@mui/icons-material';
-import { Box, Container, IconButton, Stack, alpha, styled } from '@mui/material';
+import { Box, Container, IconButton, Stack, Collapse, Paper, Slider, alpha, styled } from '@mui/material';
 import type { IconButtonProps } from '@mui/material';
 import type { Color } from 'chroma-js';
 import chroma from 'chroma-js';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 
 export interface SwatchValue {
   color: Color;
@@ -58,6 +58,9 @@ const SwatchButton = styled(IconButton, {
 export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
   const isDark = value.color.luminance() > 0.179;
   const SwatchContent = isHorizontal ? SwatchContentHorizontal : SwatchContentVertical;
+  const [showControls, setShowControls] = useState<boolean>(false);
+
+  const [hue, sat, val] = value.color.hsv();
 
   return (
     <Box
@@ -68,7 +71,12 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
       }}
     >
       <SwatchContent>
-        <SwatchButton isDark={isDark}>
+        <SwatchButton
+          isDark={isDark}
+          onClick={() => {
+            setShowControls(!showControls);
+          }}
+        >
           <TuneOutlined />
         </SwatchButton>
         <SwatchButton
@@ -86,6 +94,46 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
         >
           {value.isLocked ? <LockOutlined /> : <LockOpenOutlined />}
         </SwatchButton>
+        <Collapse in={showControls} sx={{width: "100%"}}>
+          <Paper sx={{width: "100%", p: 1}}>
+            <Stack spacing={ 1 }>
+              <Slider
+                value={hue}
+                min={0}
+                max={359}
+                onChange={(_event, newHue) => {
+                  setValue({
+                    ...value,
+                    color: chroma.hsv(newHue as number, sat, val)
+                  });
+                }}
+              />
+              <Slider
+                value={sat}
+                step={0.001}
+                min={0.0}
+                max={1.0}
+                onChange={(_event, newSat) => {
+                  console.log(newSat);
+                  setValue({
+                    ...value,
+                    color: chroma.hsv(hue, newSat as number, val)
+                  })
+                }}/>
+              <Slider
+                value={val}
+                step={0.001}
+                min={0.0}
+                max={1.0}
+                onChange={(_event, newVal) => {
+                  setValue({
+                    ...value,
+                    color: chroma.hsv(hue, sat, newVal as number)
+                  })
+                }}/>
+            </Stack>
+          </Paper>
+        </Collapse>
       </SwatchContent>
     </Box>
   );
