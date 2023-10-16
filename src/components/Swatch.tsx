@@ -7,7 +7,6 @@ import { ReactNode } from 'react';
 
 export interface SwatchValue {
   color: Color;
-  isLocked: boolean;
 }
 
 interface SwatchProps {
@@ -17,17 +16,20 @@ interface SwatchProps {
 }
 
 const SwatchControlContainer = styled(Container)(({ theme }) => ({
-  opacity: '0',
-  transition: theme.transitions.create('opacity', {
-    duration: theme.transitions.duration.short,
-  }),
-  '&:hover': {
+  [`.MuiIconButton-root`]: {
+    transition: theme.transitions.create('opacity', {
+      duration: theme.transitions.duration.short,
+    }),
+    opacity: '0',
+  },
+  [`&:hover .MuiIconButton-root`]: {
     opacity: '1',
   },
 }));
 
 interface SwatchButtonProps extends IconButtonProps {
   isDark: boolean;
+  isLocked?: boolean;
 }
 
 interface SwatchContentProps {
@@ -35,11 +37,14 @@ interface SwatchContentProps {
 }
 
 const SwatchButton = styled(IconButton, {
-  shouldForwardProp: (prop) => prop !== 'isDark',
-})<SwatchButtonProps>(({ theme, isDark, disableRipple }) => {
+  shouldForwardProp: (prop) => !['isDark', 'isLocked'].includes(prop as string),
+})<SwatchButtonProps>(({ theme, isDark, isLocked, disableRipple }) => {
   const color = isDark ? '#000' : '#fff';
   return {
     color,
+    ...(isLocked && {
+      opacity: '1',
+    }),
     // Below is from Mui source code for IconButton
     ...(!disableRipple && {
       '&:hover': {
@@ -80,6 +85,7 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
         </SwatchButton>
         <SwatchButton
           isDark={isDark}
+          style={{ ...(value.isLocked && { opacity: '1' }) }}
           onClick={() => {
             setValue({ ...value, isLocked: !value.isLocked });
           }}
