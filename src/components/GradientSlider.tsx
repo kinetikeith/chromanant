@@ -2,7 +2,7 @@ import { Slider, SliderProps, styled } from '@mui/material';
 import { Color } from 'chroma-js';
 
 interface GradientSliderProps extends SliderProps {
-  currentColor?: Color;
+  colorValue?: Color;
   gradientColors: Color[];
 }
 
@@ -33,7 +33,7 @@ const GradientSliderBase = styled(Slider)({
 });
 
 export default function GradientSlider({
-  currentColor,
+  colorValue,
   gradientColors,
   ...props
 }: GradientSliderProps) {
@@ -48,7 +48,7 @@ export default function GradientSlider({
         },
         thumb: {
           style: {
-            backgroundColor: currentColor?.hex(),
+            backgroundColor: colorValue?.hex(),
           },
         },
       }}

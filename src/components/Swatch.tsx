@@ -1,21 +1,13 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import type { ReactNode, RefObject, Dispatch, SetStateAction } from 'react';
+import { useRef } from 'react';
+import type { ReactNode } from 'react';
 import { Casino, LockOpenOutlined, LockOutlined, TuneOutlined } from '@mui/icons-material';
-import {
-  Box,
-  Container,
-  IconButton,
-  Stack,
-  Collapse,
-  Paper,
-  alpha,
-  styled,
-} from '@mui/material';
+import { Box, Container, IconButton, Stack, Collapse, alpha, styled } from '@mui/material';
 import type { IconButtonProps, ContainerProps } from '@mui/material';
 import type { Color } from 'chroma-js';
 import chroma from 'chroma-js';
 
-import GradientSlider from './GradientSlider';
+import ColorPicker from './ColorPicker';
+import { useFocusLogic, useHoverLogic } from '../hooks';
 
 export interface SwatchValue {
   color: Color;
@@ -76,66 +68,14 @@ const SwatchButton = styled(IconButton, {
   };
 });
 
-const hueGradientColors = chroma
-  .scale(['#ff0000', '#00ff00', '#0000ff', '#ff0000'])
-  .mode('hsv')
-  .colors(12, null);
-
-function useFocusLogic(
-  mainRef: RefObject<HTMLElement>,
-  ignoreRefs: RefObject<HTMLElement>[] = [],
-): [
-  boolean,
-  Dispatch<SetStateAction<boolean>>,
-  (event: React.FocusEvent) => void,
-  (event: React.FocusEvent) => void,
-] {
-  const [isActive, setIsActive] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (isActive) mainRef.current?.focus();
-    else mainRef.current?.blur();
-  }, [isActive, mainRef]);
-
-  const handleFocus = useCallback(
-    (event: React.FocusEvent): void => {
-      if (mainRef.current?.contains(event.relatedTarget)) return;
-      else setIsActive(true);
-    },
-    [mainRef],
-  );
-
-  const handleBlur = useCallback(
-    (event: React.FocusEvent): void => {
-      if (mainRef.current?.contains(event.relatedTarget)) return;
-      else if (ignoreRefs.some((ref) => ref.current?.contains(event.relatedTarget))) return;
-      else setIsActive(false);
-    },
-    [mainRef, ignoreRefs],
-  );
-
-  return [isActive, setIsActive, handleFocus, handleBlur];
-}
-
 export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
   const isDark = value.color.luminance() > 0.179;
   const SwatchContent = isHorizontal ? SwatchContentHorizontal : SwatchContentVertical;
-  const [currentHue, sat, val] = value.color.hsv();
-  const [lastHue, setLastHue] = useState<number>(0);
-  const hue = useMemo(() => (isNaN(currentHue) ? lastHue : currentHue), [lastHue, currentHue]);
 
-  const satGradientColors = [chroma.hsv(hue, 0, val), chroma.hsv(hue, 1, val)];
-
-  const valGradientColors = [chroma.hsv(hue, sat, 0), chroma.hsv(hue, sat, 1)];
-
-  useEffect(() => {
-    if (!isNaN(currentHue)) setLastHue(currentHue);
-  }, [currentHue]);
-
-  const paperRef = useRef<HTMLDivElement>(null);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
   const [isPickerActive, setIsPickerActive, handlePickerFocus, handlePickerBlur] =
-    useFocusLogic(paperRef, [pickerButtonRef]);
+    useFocusLogic(colorPickerRef, [pickerButtonRef]);
 
   return (
     <Box
@@ -171,84 +111,19 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
           <TuneOutlined />
         </SwatchButton>
         <Collapse in={isPickerActive} sx={{ width: '100%' }}>
-          <Paper
-            sx={{ width: '100%', px: 3, py: 2 }}
-            ref={paperRef}
+          <ColorPicker
+            sx={{ width: '100%' }}
+            colorValue={value.color}
+            setColorValue={(colorValue) => setValue({ ...value, color: colorValue })}
+            innerRef={colorPickerRef}
             onFocus={handlePickerFocus}
             onBlur={handlePickerBlur}
             tabIndex={0}
-          >
-            <Stack spacing={1}>
-              <GradientSlider
-                value={hue}
-                min={0}
-                max={359}
-                currentColor={value.color}
-                gradientColors={hueGradientColors}
-                onChange={(_event, newHue) => {
-                  setValue({
-                    ...value,
-                    color: chroma.hsv(newHue as number, sat, val),
-                  });
-                  setLastHue(newHue as number);
-                }}
-              />
-              <GradientSlider
-                gradientColors={satGradientColors}
-                currentColor={value.color}
-                value={sat}
-                step={0.001}
-                min={0.0}
-                max={1.0}
-                onChange={(_event, newSat) => {
-                  setValue({
-                    ...value,
-                    color: chroma.hsv(hue, newSat as number, val),
-                  });
-                }}
-              />
-              <GradientSlider
-                gradientColors={valGradientColors}
-                currentColor={value.color}
-                value={val}
-                step={0.001}
-                min={0.0}
-                max={1.0}
-                onChange={(_event, newVal) => {
-                  setValue({
-                    ...value,
-                    color: chroma.hsv(hue, sat, newVal as number),
-                  });
-                }}
-              />
-            </Stack>
-          </Paper>
+          />
         </Collapse>
       </SwatchContent>
     </Box>
   );
-}
-
-function useHoverLogic(delay: number): [boolean, () => void, () => void] {
-  const [shouldShow, setShouldShow] = useState<boolean>(false);
-  const timerRef = useRef<number | null>(null);
-
-  const handleMouseMove = useCallback(() => {
-    setShouldShow(true);
-    if (timerRef.current !== null) clearTimeout(timerRef.current);
-    const timerId = setTimeout(() => {
-      setShouldShow(false);
-    }, delay);
-    timerRef.current = timerId;
-  }, [delay]);
-
-  const handleMouseLeave = useCallback(() => {
-    setShouldShow(false);
-    if (timerRef.current !== null) clearTimeout(timerRef.current);
-    timerRef.current = null;
-  }, []);
-
-  return [shouldShow, handleMouseMove, handleMouseLeave];
 }
 
 const hideDelay = 3000;
