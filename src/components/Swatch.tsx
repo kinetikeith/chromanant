@@ -1,18 +1,14 @@
-import { useRef } from 'react';
+import { useCallback, useContext, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { Casino, LockOpenOutlined, LockOutlined, TuneOutlined } from '@mui/icons-material';
 import { Box, Container, IconButton, Stack, Collapse, alpha, styled } from '@mui/material';
 import type { IconButtonProps, ContainerProps } from '@mui/material';
-import type { Color } from 'chroma-js';
 import chroma from 'chroma-js';
 
 import ColorPicker from './ColorPicker';
 import { useFocusLogic, useHoverLogic } from '../hooks';
-
-export interface SwatchValue {
-  color: Color;
-  isLocked: boolean;
-}
+import type { SwatchValue } from '../ColorContext';
+import ColorContext from '../ColorContext';
 
 interface SwatchProps {
   value: SwatchValue;
@@ -71,11 +67,21 @@ const SwatchButton = styled(IconButton, {
 export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
   const isDark = value.color.luminance() > 0.179;
   const SwatchContent = isHorizontal ? SwatchContentHorizontal : SwatchContentVertical;
+  const context = useContext(ColorContext);
 
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
   const [isPickerActive, setIsPickerActive, handlePickerFocus, handlePickerBlur] =
     useFocusLogic(colorPickerRef, [pickerButtonRef]);
+
+  const randomizeColor = useCallback(() => {
+    const otherColors = context.swatchValues
+    .filter(tValue => tValue != value)
+    .map(value => value.color);
+
+    const color = context.generateColors(otherColors, 1).shift() || chroma("#000000");
+    setValue({...value, color});
+  }, [context, value, setValue]);
 
   return (
     <Box
@@ -89,7 +95,7 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
         <SwatchButton
           isDark={isDark}
           disabled={value.isLocked}
-          onClick={() => setValue({ ...value, color: chroma.random() })}
+          onClick={randomizeColor}
         >
           <Casino />
         </SwatchButton>

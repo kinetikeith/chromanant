@@ -1,10 +1,13 @@
-import chroma from 'chroma-js';
+import chroma, { Color } from 'chroma-js';
 import { Paper, Tabs, Tab } from '@mui/material';
 import SwatchMode from './modes/SwatchMode';
-import { useState } from 'react';
-import type { SwatchValue } from './components/Swatch';
+import { useCallback, useMemo, useState } from 'react';
 
-const defaultValues = [
+import ColorContext, { GenerationMode } from './ColorContext';
+import type { SwatchValue } from './ColorContext';
+import generate from './math/generate';
+
+const defaultSwatchValues = [
   chroma('#383F51'),
   chroma('#DDDBF1'),
   chroma('#3C4F76'),
@@ -19,8 +22,27 @@ enum Mode {
 }
 
 function App() {
-  const [values, setValues] = useState<SwatchValue[]>(defaultValues);
+  const [swatchValues, setSwatchValues] = useState<SwatchValue[]>(defaultSwatchValues);
   const [mode, setMode] = useState<Mode>(Mode.Swatch);
+  const [generationMode, setGenerationMode] = useState<GenerationMode>(GenerationMode.Random);
+
+  const generateColors = useCallback((colorsGiven: Color[], nColors: number) => (
+    generate(colorsGiven, nColors, generationMode)
+  ), [generationMode]);
+
+  const colorContextValue = useMemo(() => ({
+    swatchValues,
+    setSwatchValues,
+    generationMode,
+    setGenerationMode,
+    generateColors,
+  }), [
+    swatchValues,
+    setSwatchValues,
+    generationMode,
+    setGenerationMode,
+    generateColors,
+  ]);
 
   return (
     <>
@@ -41,9 +63,11 @@ function App() {
           <Tab label="Export" value={Mode.Export} />
         </Tabs>
       </Paper>
-      {mode === Mode.Swatch && (
-        <SwatchMode direction="row" values={values} setValues={setValues} />
-      )}
+      <ColorContext.Provider value={ colorContextValue }>
+        {mode === Mode.Swatch && (
+          <SwatchMode direction="row" />
+        )}
+      </ColorContext.Provider>
     </>
   );
 }
