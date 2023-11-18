@@ -23,14 +23,17 @@ export default function ColorPicker({
   innerRef,
   ...props
 }: ColorPickerProps) {
-  const [currentHue, sat, val] = colorValue.hsv();
+  const [currentHue, currentSat, val] = colorValue.hsv();
   const [lastHue, setLastHue] = useState<number>(0);
+  const [lastSat, setLastSat] = useState<number>(0);
 
   const hue = useMemo(() => (isNaN(currentHue) ? lastHue : currentHue), [lastHue, currentHue]);
+  const sat = useMemo(() => (currentSat === 0 ? lastSat : currentSat), [lastSat, currentSat]);
 
   useEffect(() => {
     if (!isNaN(currentHue)) setLastHue(currentHue);
-  }, [currentHue]);
+    if (val !== 0) setLastSat(currentSat);
+  }, [currentHue, currentSat, val]);
 
   const satGradientColors = [chroma.hsv(hue, 0, val), chroma.hsv(hue, 1, val)];
   const valGradientColors = [chroma.hsv(hue, sat, 0), chroma.hsv(hue, sat, 1)];
@@ -58,6 +61,7 @@ export default function ColorPicker({
           max={1.0}
           onChange={(_event, newSat) => {
             setColorValue(chroma.hsv(hue, newSat as number, val));
+            setLastSat(newSat as number);
           }}
         />
         <GradientSlider
