@@ -11,6 +11,7 @@ interface SwatchValue {
 
 enum GenerationMode {
   Random,
+  RgbCube,
 }
 
 interface ColorContextType {

@@ -24,7 +24,7 @@ enum Mode {
 function App() {
   const [swatchValues, setSwatchValues] = useState<SwatchValue[]>(defaultSwatchValues);
   const [mode, setMode] = useState<Mode>(Mode.Swatch);
-  const [generationMode, setGenerationMode] = useState<GenerationMode>(GenerationMode.Random);
+  const [generationMode, setGenerationMode] = useState<GenerationMode>(GenerationMode.RgbCube);
 
   const generateColors = useCallback((colorsGiven: Color[], nColors: number) => (
     generate(colorsGiven, nColors, generationMode)
