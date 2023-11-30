@@ -31,8 +31,6 @@ export default function SwatchMode({ direction }: SwatchModeProps) {
         unlockedValues.length
       );
 
-      console.log(unlockedValues.length);
-
       const newValues = oldValues.map(value => {
         if(value.isLocked) return value;
 
