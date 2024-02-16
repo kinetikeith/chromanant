@@ -1,6 +1,7 @@
 import chroma, { Color } from 'chroma-js';
 import { Paper, Tabs, Tab } from '@mui/material';
 import SwatchMode from './modes/SwatchMode';
+import PaletteMode from './modes/PaletteMode';
 import { useCallback, useMemo, useState } from 'react';
 
 import ColorContext, { GenerationMode } from './ColorContext';
@@ -55,6 +56,7 @@ function App() {
           borderTopLeftRadius: 0,
           borderTopRightRadius: 0,
           transform: 'translateX(-50%)',
+          zIndex: 1,
         }}
       >
         <Tabs value={mode} onChange={(_event, newMode: Mode) => setMode(newMode)}>
@@ -66,6 +68,9 @@ function App() {
       <ColorContext.Provider value={ colorContextValue }>
         {mode === Mode.Swatch && (
           <SwatchMode direction="row" />
+        )}
+        {mode === Mode.Palette && (
+          <PaletteMode />
         )}
       </ColorContext.Provider>
     </>
