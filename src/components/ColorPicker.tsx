@@ -17,13 +17,18 @@ const hueGradientColors = chroma
   .mode('hsv')
   .colors(12, null);
 
+function cleanHsv(color: Color) {
+  const [hue, sat, val] = color.hsv();
+  return [isNaN(hue) ? 0 : hue, sat, val];
+}
+
 export default function ColorPicker({
   colorValue,
   setColorValue,
   innerRef,
   ...props
 }: ColorPickerProps) {
-  const [currentHue, currentSat, val] = colorValue.hsv();
+  const [currentHue, currentSat, val] = useMemo(() => cleanHsv(colorValue), [colorValue]);
   const [lastHue, setLastHue] = useState<number>(0);
   const [lastSat, setLastSat] = useState<number>(0);
 
@@ -56,7 +61,7 @@ export default function ColorPicker({
           gradientColors={satGradientColors}
           colorValue={colorValue}
           value={sat}
-          step={0.001}
+          step={0.01}
           min={0.0}
           max={1.0}
           onChange={(_event, newSat) => {
@@ -68,7 +73,7 @@ export default function ColorPicker({
           gradientColors={valGradientColors}
           colorValue={colorValue}
           value={val}
-          step={0.001}
+          step={0.01}
           min={0.0}
           max={1.0}
           onChange={(_event, newVal) => {

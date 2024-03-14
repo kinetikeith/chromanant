@@ -16,6 +16,7 @@ enum GenerationMode {
 
 interface ColorContextType {
   swatchValues: SwatchValue[];
+  setSwatchValue: (index: number, value: SwatchValue) => void;
   setSwatchValues: ReactSet<SwatchValue[]>;
   generationMode: GenerationMode;
   setGenerationMode: ReactSet<GenerationMode>;
@@ -24,6 +25,7 @@ interface ColorContextType {
 
 const ColorContext = createContext<ColorContextType>({
   swatchValues: [],
+  setSwatchValue: () => {},
   setSwatchValues: () => {},
   generationMode: GenerationMode.Random,
   setGenerationMode: () => {},

@@ -31,8 +31,17 @@ function App() {
     generate(colorsGiven, nColors, generationMode)
   ), [generationMode]);
 
+  const setSwatchValue = useCallback((index: number, value: SwatchValue) => {
+    return setSwatchValues((oldValues) => {
+      const newValues = [...oldValues];
+      newValues[index] = value;
+      return newValues;
+    });
+  }, []);
+
   const colorContextValue = useMemo(() => ({
     swatchValues,
+    setSwatchValue,
     setSwatchValues,
     generationMode,
     setGenerationMode,

@@ -9,6 +9,7 @@ import ColorPicker from './ColorPicker';
 import { useFocusLogic, useHoverLogic } from '../hooks';
 import type { SwatchValue } from '../ColorContext';
 import ColorContext from '../ColorContext';
+import { RadarPicker } from './ColorRadar';
 
 interface SwatchProps {
   value: SwatchValue;
@@ -83,6 +84,7 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
     setValue({...value, color});
   }, [context, value, setValue]);
 
+
   return (
     <Box
       style={{ backgroundColor: value.color.hex() }}
@@ -117,7 +119,7 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
           <TuneOutlined />
         </SwatchButton>
         <Collapse in={isPickerActive} sx={{ width: '100%' }}>
-          <ColorPicker
+          {/* <ColorPicker
             sx={{ width: '100%' }}
             colorValue={value.color}
             setColorValue={(colorValue) => setValue({ ...value, color: colorValue })}
@@ -125,6 +127,12 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
             onFocus={handlePickerFocus}
             onBlur={handlePickerBlur}
             tabIndex={0}
+          />
+          */ }
+          <RadarPicker
+            sx={{ width: '100%' }}
+            value={ value.color }
+            setValue={(newValue) => setValue({ ...value, color: newValue})}
           />
         </Collapse>
       </SwatchContent>

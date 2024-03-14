@@ -1,5 +1,6 @@
 import { Slider, SliderProps, styled } from '@mui/material';
 import { Color } from 'chroma-js';
+import { useMemo } from 'preact/hooks';
 
 interface GradientSliderProps extends SliderProps {
   colorValue?: Color;
@@ -37,13 +38,17 @@ export default function GradientSlider({
   gradientColors,
   ...props
 }: GradientSliderProps) {
-  const cssHex = gradientColors.map((color) => color.hex()).join(', ');
+  const gradientCss = useMemo(() => {
+    const cssHex = gradientColors.map((color) => color.hex()).join(', ');
+    return `linear-gradient(90deg, ${cssHex})`;
+  }, [gradientColors]);
+
   return (
     <GradientSliderBase
       slotProps={{
         rail: {
           style: {
-            background: `linear-gradient(90deg, ${cssHex})`,
+            background: gradientCss,
           },
         },
         thumb: {
