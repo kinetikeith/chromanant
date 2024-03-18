@@ -6,10 +6,10 @@ import chroma from 'chroma-js';
 import type { Color } from 'chroma-js';
 import GradientSlider from './GradientSlider';
 
-interface ColorPickerProps extends PaperProps {
+interface ColorPickerProps extends Omit<PaperProps, 'color'> {
   innerRef?: RefObject<HTMLDivElement>;
-  colorValue: Color;
-  setColorValue: (color: Color) => void;
+  color: Color;
+  setColor: (color: Color) => void;
 }
 
 const hueGradientColors = chroma
@@ -23,12 +23,12 @@ function cleanHsv(color: Color) {
 }
 
 export default function ColorPicker({
-  colorValue,
-  setColorValue,
+  color,
+  setColor,
   innerRef,
   ...props
 }: ColorPickerProps) {
-  const [currentHue, currentSat, val] = useMemo(() => cleanHsv(colorValue), [colorValue]);
+  const [currentHue, currentSat, val] = useMemo(() => cleanHsv(color), [color]);
   const [lastHue, setLastHue] = useState<number>(0);
   const [lastSat, setLastSat] = useState<number>(0);
 
@@ -50,34 +50,34 @@ export default function ColorPicker({
           value={hue}
           min={0}
           max={359}
-          colorValue={colorValue}
+          color={color}
           gradientColors={hueGradientColors}
           onChange={(_event, newHue) => {
-            setColorValue(chroma.hsv(newHue as number, sat, val));
+            setColor(chroma.hsv(newHue as number, sat, val));
             setLastHue(newHue as number);
           }}
         />
         <GradientSlider
           gradientColors={satGradientColors}
-          colorValue={colorValue}
+          color={color}
           value={sat}
           step={0.01}
           min={0.0}
           max={1.0}
           onChange={(_event, newSat) => {
-            setColorValue(chroma.hsv(hue, newSat as number, val));
+            setColor(chroma.hsv(hue, newSat as number, val));
             setLastSat(newSat as number);
           }}
         />
         <GradientSlider
           gradientColors={valGradientColors}
-          colorValue={colorValue}
+          color={color}
           value={val}
           step={0.01}
           min={0.0}
           max={1.0}
           onChange={(_event, newVal) => {
-            setColorValue(chroma.hsv(hue, sat, newVal as number));
+            setColor(chroma.hsv(hue, sat, newVal as number));
           }}
         />
       </Stack>

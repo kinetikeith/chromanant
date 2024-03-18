@@ -1,9 +1,9 @@
 import { Slider, SliderProps, styled } from '@mui/material';
 import { Color } from 'chroma-js';
-import { useMemo } from 'preact/hooks';
+import { useMemo } from 'react';
 
-interface GradientSliderProps extends SliderProps {
-  colorValue?: Color;
+interface GradientSliderProps extends Omit<SliderProps, 'color'> {
+  color?: Color;
   gradientColors: Color[];
 }
 
@@ -34,7 +34,7 @@ const GradientSliderBase = styled(Slider)({
 });
 
 export default function GradientSlider({
-  colorValue,
+  color,
   gradientColors,
   ...props
 }: GradientSliderProps) {
@@ -53,7 +53,7 @@ export default function GradientSlider({
         },
         thumb: {
           style: {
-            backgroundColor: colorValue?.hex(),
+            backgroundColor: color?.hex(),
           },
         },
       }}

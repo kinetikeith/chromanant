@@ -71,70 +71,71 @@ const ColorRadarChip = styled('span')({
 });
 
 interface RadarPaletteProps extends BoxProps {
-  values: Color[];
-  setValue: (index: number, value: Color) => void;
+  colors: Color[];
+  setColor: (index: number, color: Color) => void;
 }
 
-interface RadarPickerProps extends BoxProps {
-  value: Color;
-  setValue: (value: Color) => void;
+interface RadarPickerProps extends Omit<BoxProps, 'color'> {
+  color: Color;
+  setColor: (color: Color) => void;
 }
 
-export function RadarPalette({values, setValue = () => {}, ...props}: RadarPaletteProps) {
+export function RadarPalette({colors, setColor = () => {}, ...props}: RadarPaletteProps) {
   const ref = useRef<HTMLElement>(null);
-  const [elWidth, elHeight] = useElementSize(ref);
+  const parentSize = useElementSize(ref);
 
   return (
     <ColorRadarBackground ref={ ref } {...props}>
-      { values.map((value, index) => {
-        const [x, y] = colorToPositionPolar(value);
-        return (
-          <DraggableCore
-            onDrag={ (_e, data) => {
-              const [hue, sat] = positionPolarToHS(data.x / elWidth, data.y / elHeight);
-              const newValue = value.set('hsv.h', hue).set('hsv.s', sat);
-              setValue(index, newValue);
-            } }
-          >
-            <ColorRadarChip
-              key={ index }
-              style={{
-                left: x * elWidth,
-                top: y * elHeight,
-                backgroundColor: value.hex()
-              }}
-            />
-          </DraggableCore>
-        )
-      })}
+      { colors.map((color, index) => (
+        <DraggableRadarChip parentSize={ parentSize } color={ color } setColor={ (color) => setColor(index, color) } key={ index } />
+      ))}
     </ColorRadarBackground>
   )
 }
 
-export function RadarPicker({value, setValue, ...props}: RadarPickerProps) {
-  const ref = useRef<HTMLElement>(null);
-  const [elWidth, elHeight] = useElementSize(ref);
-  const [x, y] = colorToPositionPolar(value);
+interface DraggableRadarChipProps {
+  color: Color;
+  setColor: (color: Color) => void;
+
+  parentSize: [number, number];
+}
+
+function DraggableRadarChip({color, setColor, parentSize}: DraggableRadarChipProps) {
+  const chipRef = useRef<HTMLElement>(null);
+  const [x, y] = colorToPositionPolar(color);
+
+  const [parentWidth, parentHeight] = parentSize;
 
   return (
-    <ColorRadarBackground ref={ ref } {...props}>
-      <DraggableCore
-        onDrag={ (_e, data) => {
-          const [hue, sat] = positionPolarToHS(data.x / elWidth, data.y / elHeight);
-          const newValue = value.set('hsv.h', hue).set('hsv.s', sat);
-          setValue(newValue);
-        } }
-      >
-        <ColorRadarChip
-          style={{
-            left: x * elWidth,
-            top: y * elHeight,
-            backgroundColor: value.hex(),
-            width: '30px',
-            height: '30px',
-          }}
-        />
-      </DraggableCore>
+    <DraggableCore
+      nodeRef={ chipRef }
+      onDrag={ (_e, data) => {
+        const [hue, sat] = positionPolarToHS(data.x / parentWidth, data.y / parentHeight);
+        const newColor = color.set('hsv.h', hue).set('hsv.s', sat);
+        setColor(newColor);
+      } }
+    >
+      <ColorRadarChip
+        ref={ chipRef }
+        style={{
+          left: x * parentWidth,
+          top: y * parentHeight,
+          backgroundColor: color.hex(),
+          width: '30px',
+          height: '30px',
+        }}
+      />
+    </DraggableCore>
+  );
+}
+
+export function RadarPicker({color, setColor, ...props}: RadarPickerProps) {
+  const ref = useRef<HTMLElement>(null);
+  const parentSize = useElementSize(ref);
+
+  return (
+    <ColorRadarBackground ref={ ref } { ...props }>
+      <DraggableRadarChip parentSize={ parentSize } color={ color } setColor={ setColor } />
     </ColorRadarBackground>
   )
 }

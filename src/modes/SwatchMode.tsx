@@ -1,45 +1,48 @@
 import { useContext } from 'react';
 import { Stack } from '@mui/material';
-import Swatch from '../components/Swatch';
 import chroma from 'chroma-js';
 import { partition } from 'lodash';
 
-import ColorContext from '../ColorContext';
-import type { SwatchValue } from '../ColorContext';
+import SwatchContext from '../SwatchContext';
+import type { Swatch } from '../SwatchContext';
+import SwatchBar from '../components/SwatchBar';
 
 interface SwatchModeProps {
   direction: 'row' | 'column';
 }
 
 export default function SwatchMode({ direction }: SwatchModeProps) {
-  const context = useContext(ColorContext);
+  const context = useContext(SwatchContext);
 
-  const setValue = (newValue: SwatchValue, newIndex: number) => {
-    context.setSwatchValues(
-      context.swatchValues.map((oldValue, oldIndex) => (oldIndex === newIndex ? newValue : oldValue)),
+  const setSwatch = (newSwatch: Swatch, newIndex: number) => {
+    context.setSwatches(
+      context.swatches.map((oldSwatch, oldIndex) => (oldIndex === newIndex ? newSwatch : oldSwatch)),
     );
   };
 
   const randomizeColors = () => {
-    context.setSwatchValues(oldValues => {
-      const [lockedValues, unlockedValues] = partition(
-        oldValues, value => value.isLocked
+    context.setSwatches(oldSwatches => {
+      /*
+      const [lockedSwatches, unlockedSwatches] = partition(
+        oldSwatches, swatch => swatch.isLocked
       );
 
       const newColors = context.generateColors(
-        lockedValues.map(value => value.color),
-        unlockedValues.length
+        lockedSwatches.map(swatch => swatch.color),
+        unlockedSwatches.length
       );
 
-      const newValues = oldValues.map(value => {
-        if(value.isLocked) return value;
+      const newSwatches = oldSwatches.map(swatch => {
+        if(swatch.isLocked) return swatch;
 
         const color = newColors.shift();
         if(color !== undefined) return {color, isLocked: false};
         else return {color: chroma('#000000'), isLocked: false};
       });
 
-      return newValues;
+      return newSwatches;
+      */
+      return oldSwatches;
     });
   };
 
@@ -57,10 +60,10 @@ export default function SwatchMode({ direction }: SwatchModeProps) {
         }
       }}
     >
-      {context.swatchValues.map((value, index) => (
-        <Swatch
-          value={value}
-          setValue={(newValue) => setValue(newValue, index)}
+      {context.swatches.map((swatch, index) => (
+        <SwatchBar
+          swatch={swatch}
+          setSwatch={(newSwatch) => setSwatch(newSwatch, index)}
           key={index}
           isHorizontal={direction === 'column'}
         />

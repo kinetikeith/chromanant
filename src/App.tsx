@@ -4,11 +4,11 @@ import SwatchMode from './modes/SwatchMode';
 import PaletteMode from './modes/PaletteMode';
 import { useCallback, useMemo, useState } from 'react';
 
-import ColorContext, { GenerationMode } from './ColorContext';
-import type { SwatchValue } from './ColorContext';
+import SwatchContext, { GenerationMode } from './SwatchContext';
+import type { Swatch } from './SwatchContext';
 import generate from './math/generate';
 
-const defaultSwatchValues = [
+const defaultSwatches = [
   chroma('#383F51'),
   chroma('#DDDBF1'),
   chroma('#3C4F76'),
@@ -23,35 +23,30 @@ enum Mode {
 }
 
 function App() {
-  const [swatchValues, setSwatchValues] = useState<SwatchValue[]>(defaultSwatchValues);
+  const [swatches, setSwatches] = useState<Swatch[]>(defaultSwatches);
   const [mode, setMode] = useState<Mode>(Mode.Swatch);
   const [generationMode, setGenerationMode] = useState<GenerationMode>(GenerationMode.RgbCube);
 
+  /*
   const generateColors = useCallback((colorsGiven: Color[], nColors: number) => (
     generate(colorsGiven, nColors, generationMode)
   ), [generationMode]);
 
-  const setSwatchValue = useCallback((index: number, value: SwatchValue) => {
-    return setSwatchValues((oldValues) => {
-      const newValues = [...oldValues];
+  const setSwatch = useCallback((index: number, swatch: Swatch) => {
+    return setSwatches((oldSwatches) => {
+      const newSwatches = [...oldSwatches];
       newValues[index] = value;
       return newValues;
     });
   }, []);
+  */
 
-  const colorContextValue = useMemo(() => ({
-    swatchValues,
-    setSwatchValue,
-    setSwatchValues,
-    generationMode,
-    setGenerationMode,
-    generateColors,
+  const swatchContextValue = useMemo(() => ({
+    swatches,
+    setSwatches,
   }), [
-    swatchValues,
-    setSwatchValues,
-    generationMode,
-    setGenerationMode,
-    generateColors,
+    swatches,
+    setSwatches,
   ]);
 
   return (
@@ -74,14 +69,14 @@ function App() {
           <Tab label="Export" value={Mode.Export} />
         </Tabs>
       </Paper>
-      <ColorContext.Provider value={ colorContextValue }>
+      <SwatchContext.Provider value={ swatchContextValue }>
         {mode === Mode.Swatch && (
           <SwatchMode direction="row" />
         )}
         {mode === Mode.Palette && (
           <PaletteMode />
         )}
-      </ColorContext.Provider>
+      </SwatchContext.Provider>
     </>
   );
 }

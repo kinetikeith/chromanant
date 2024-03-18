@@ -1,5 +1,5 @@
 import chroma, { Color } from "chroma-js";
-import { GenerationMode } from '../ColorContext';
+import { GenerationMode } from '../SwatchContext';
 import { range } from "lodash";
 
 function lerp(a: number, b: number, t: number): number {

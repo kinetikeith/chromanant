@@ -7,23 +7,23 @@ import chroma from 'chroma-js';
 
 import ColorPicker from './ColorPicker';
 import { useFocusLogic, useHoverLogic } from '../hooks';
-import type { SwatchValue } from '../ColorContext';
-import ColorContext from '../ColorContext';
+import type { Swatch } from '../SwatchContext';
+import SwatchContext from '../SwatchContext';
 import { RadarPicker } from './ColorRadar';
 
-interface SwatchProps {
-  value: SwatchValue;
-  setValue: (value: SwatchValue) => void;
+interface SwatchBarProps {
+  swatch: Swatch;
+  setSwatch: (swatch: Swatch) => void;
   isHorizontal: boolean;
 }
 
-interface SwatchControlsProps extends ContainerProps {
+interface SwatchBarControlsProps extends ContainerProps {
   shouldShow: boolean;
 }
 
-const SwatchControls = styled(Container, {
+const SwatchBarControls = styled(Container, {
   shouldForwardProp: (prop) => prop !== 'shouldShow',
-})<SwatchControlsProps>(({ theme, shouldShow }) => ({
+})<SwatchBarControlsProps>(({ theme, shouldShow }) => ({
   [`.MuiIconButton-root`]: {
     transition: theme.transitions.create('opacity', {
       duration: theme.transitions.duration.short,
@@ -32,18 +32,18 @@ const SwatchControls = styled(Container, {
   },
 }));
 
-interface SwatchButtonProps extends IconButtonProps {
+interface SwatchBarButtonProps extends IconButtonProps {
   isDark: boolean;
   isLocked?: boolean;
 }
 
-interface SwatchContentProps {
+interface SwatchBarContentProps {
   children: ReactNode;
 }
 
-const SwatchButton = styled(IconButton, {
+const SwatchBarButton = styled(IconButton, {
   shouldForwardProp: (prop) => !['isDark', 'isLocked'].includes(prop as string),
-})<SwatchButtonProps>(({ theme, isDark, isLocked, disableRipple }) => {
+})<SwatchBarButtonProps>(({ theme, isDark, isLocked, disableRipple }) => {
   const color = isDark ? '#000' : '#fff';
   return {
     color,
@@ -65,64 +65,66 @@ const SwatchButton = styled(IconButton, {
   };
 });
 
-export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
-  const isDark = value.color.luminance() > 0.179;
-  const SwatchContent = isHorizontal ? SwatchContentHorizontal : SwatchContentVertical;
-  const context = useContext(ColorContext);
+export default function SwatchBar({ swatch, setSwatch, isHorizontal }: SwatchBarProps) {
+  const isDark = swatch.color.luminance() > 0.179;
+  const SwatchBarContent = isHorizontal ? SwatchBarContentHorizontal : SwatchBarContentVertical;
+  const context = useContext(SwatchContext);
 
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
-  const [isPickerActive, setIsPickerActive, handlePickerFocus, handlePickerBlur] =
+  const [isPickerActive, setIsPickerActive, _handlePickerFocus, _handlePickerBlur] =
     useFocusLogic(colorPickerRef, [pickerButtonRef]);
 
   const randomizeColor = useCallback(() => {
-    const otherColors = context.swatchValues
-    .filter(tValue => tValue != value)
-    .map(value => value.color);
+    /* const otherColors = context.swatches
+    .filter(tSwatch => tSwatch != swatch)
+    .map(swatch => swatch.color);
 
     const color = context.generateColors(otherColors, 1).shift() || chroma("#000000");
-    setValue({...value, color});
-  }, [context, value, setValue]);
+    */
+    const color = swatch.color;
+    setSwatch({...swatch, color});
+  }, [context, swatch, setSwatch]);
 
 
   return (
     <Box
-      style={{ backgroundColor: value.color.hex() }}
+      style={{ backgroundColor: swatch.color.hex() }}
       sx={{
         width: '100%',
         height: '100%',
       }}
     >
-      <SwatchContent>
-        <SwatchButton
+      <SwatchBarContent>
+        <SwatchBarButton
           isDark={isDark}
-          disabled={value.isLocked}
+          disabled={swatch.isLocked}
           onClick={randomizeColor}
         >
           <Casino />
-        </SwatchButton>
-        <SwatchButton
+        </SwatchBarButton>
+        <SwatchBarButton
           isDark={isDark}
-          style={{ ...(value.isLocked && { opacity: '1' }) }}
+          style={{ ...(swatch.isLocked && { opacity: '1' }) }}
           onClick={() => {
-            setValue({ ...value, isLocked: !value.isLocked });
+            setSwatch({ ...swatch, isLocked: !swatch.isLocked });
           }}
         >
-          {value.isLocked ? <LockOutlined /> : <LockOpenOutlined />}
-        </SwatchButton>
-        <SwatchButton
+          {swatch.isLocked ? <LockOutlined /> : <LockOpenOutlined />}
+        </SwatchBarButton>
+        <SwatchBarButton
           style={{ ...(isPickerActive && { opacity: '1' }) }}
           ref={pickerButtonRef}
           isDark={isDark}
           onClick={() => setIsPickerActive(!isPickerActive)}
         >
           <TuneOutlined />
-        </SwatchButton>
+        </SwatchBarButton>
         <Collapse in={isPickerActive} sx={{ width: '100%' }}>
           {/* <ColorPicker
             sx={{ width: '100%' }}
-            colorValue={value.color}
-            setColorValue={(colorValue) => setValue({ ...value, color: colorValue })}
+            color={swatch.color}
+            setColor={(color) => setSwatch({ ...swatch, color: color })}
             innerRef={colorPickerRef}
             onFocus={handlePickerFocus}
             onBlur={handlePickerBlur}
@@ -131,22 +133,22 @@ export default function Swatch({ value, setValue, isHorizontal }: SwatchProps) {
           */ }
           <RadarPicker
             sx={{ width: '100%' }}
-            value={ value.color }
-            setValue={(newValue) => setValue({ ...value, color: newValue})}
+            color={ swatch.color }
+            setColor={(newColor) => setSwatch({ ...swatch, color: newColor})}
           />
         </Collapse>
-      </SwatchContent>
+      </SwatchBarContent>
     </Box>
   );
 }
 
 const hideDelay = 3000;
 
-function SwatchContentVertical({ children }: SwatchContentProps) {
+function SwatchBarContentVertical({ children }: SwatchBarContentProps) {
   const [shouldShow, handleMouseMove, handleMouseLeave] = useHoverLogic(hideDelay);
 
   return (
-    <SwatchControls
+    <SwatchBarControls
       shouldShow={shouldShow}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -161,15 +163,15 @@ function SwatchContentVertical({ children }: SwatchContentProps) {
       >
         {children}
       </Stack>
-    </SwatchControls>
+    </SwatchBarControls>
   );
 }
 
-function SwatchContentHorizontal({ children }: SwatchContentProps) {
+function SwatchBarContentHorizontal({ children }: SwatchBarContentProps) {
   const [shouldShow, handleMouseMove, handleMouseLeave] = useHoverLogic(hideDelay);
 
   return (
-    <SwatchControls
+    <SwatchBarControls
       shouldShow={shouldShow}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -184,6 +186,6 @@ function SwatchContentHorizontal({ children }: SwatchContentProps) {
       >
         {children}
       </Stack>
-    </SwatchControls>
+    </SwatchBarControls>
   );
 }
