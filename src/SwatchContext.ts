@@ -1,15 +1,13 @@
 import { Color } from "chroma-js";
 import { createContext } from "react";
-import type { Dispatch, SetStateAction } from "react";
-
-type ReactSet<Type> = Dispatch<SetStateAction<Type>>;
+import type { Dispatch } from "react";
+import { SwatchAction } from "./SwatchReducer";
 
 interface Swatch {
+  id: string;
   color: Color;
   isLocked: boolean;
 }
-
-type SetSwatchesFunc = ReactSet<Swatch[]>;
 
 enum GenerationMode {
   Random,
@@ -18,14 +16,14 @@ enum GenerationMode {
 
 interface SwatchContextType {
   swatches: Swatch[];
-  setSwatches: ReactSet<Swatch[]>;
+  dispatchSwatch: Dispatch<SwatchAction>;
 }
 
 const SwatchContext = createContext<SwatchContextType>({
   swatches: [],
-  setSwatches: () => {},
+  dispatchSwatch: () => {},
 });
 
 export default SwatchContext;
 export { GenerationMode };
-export type { Swatch, SetSwatchesFunc };
+export type { Swatch };

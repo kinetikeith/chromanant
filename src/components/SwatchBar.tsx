@@ -10,10 +10,11 @@ import { useFocusLogic, useHoverLogic } from '../hooks';
 import type { Swatch } from '../SwatchContext';
 import SwatchContext from '../SwatchContext';
 import { RadarPicker } from './ColorRadar';
+import { DispatchSwatchFunc } from '../SwatchReducer';
 
 interface SwatchBarProps {
   swatch: Swatch;
-  setSwatch: (swatch: Swatch) => void;
+  dispatchSwatch: DispatchSwatchFunc;
   isHorizontal: boolean;
 }
 
@@ -65,7 +66,7 @@ const SwatchBarButton = styled(IconButton, {
   };
 });
 
-export default function SwatchBar({ swatch, setSwatch, isHorizontal }: SwatchBarProps) {
+export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: SwatchBarProps) {
   const isDark = swatch.color.luminance() > 0.179;
   const SwatchBarContent = isHorizontal ? SwatchBarContentHorizontal : SwatchBarContentVertical;
   const context = useContext(SwatchContext);
@@ -82,9 +83,8 @@ export default function SwatchBar({ swatch, setSwatch, isHorizontal }: SwatchBar
 
     const color = context.generateColors(otherColors, 1).shift() || chroma("#000000");
     */
-    const color = swatch.color;
-    setSwatch({...swatch, color});
-  }, [context, swatch, setSwatch]);
+    dispatchSwatch({type: "update", id: swatch.id, color: swatch.color});
+  }, [context, swatch, dispatchSwatch]);
 
 
   return (
@@ -107,7 +107,7 @@ export default function SwatchBar({ swatch, setSwatch, isHorizontal }: SwatchBar
           isDark={isDark}
           style={{ ...(swatch.isLocked && { opacity: '1' }) }}
           onClick={() => {
-            setSwatch({ ...swatch, isLocked: !swatch.isLocked });
+            dispatchSwatch({type: "update", id: swatch.id, isLocked: !swatch.isLocked });
           }}
         >
           {swatch.isLocked ? <LockOutlined /> : <LockOpenOutlined />}
@@ -124,7 +124,7 @@ export default function SwatchBar({ swatch, setSwatch, isHorizontal }: SwatchBar
           {/* <ColorPicker
             sx={{ width: '100%' }}
             color={swatch.color}
-            setColor={(color) => setSwatch({ ...swatch, color: color })}
+            setColor={(newColor) => dispatchSwatch({type: "update", id: swatch.id, color: newColor})}
             innerRef={colorPickerRef}
             onFocus={handlePickerFocus}
             onBlur={handlePickerBlur}
@@ -133,8 +133,8 @@ export default function SwatchBar({ swatch, setSwatch, isHorizontal }: SwatchBar
           */ }
           <RadarPicker
             sx={{ width: '100%' }}
-            color={ swatch.color }
-            setColor={(newColor) => setSwatch({ ...swatch, color: newColor})}
+            swatch={ swatch }
+            dispatchSwatch={ dispatchSwatch }
           />
         </Collapse>
       </SwatchBarContent>

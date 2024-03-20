@@ -2,6 +2,8 @@ import { Box, BoxProps, styled } from "@mui/material";
 import chroma, { Color } from "chroma-js";
 import { useRef, useState, useEffect, RefObject } from "react";
 import { DraggableCore } from "react-draggable";
+import { Swatch } from "../SwatchContext";
+import { DispatchSwatchFunc } from "../SwatchReducer";
 
 const hueGradientColors = chroma
   .scale(['#ff0000', '#00ff00', '#0000ff', '#ff0000'])
@@ -71,23 +73,28 @@ const ColorRadarChip = styled('span')({
 });
 
 interface RadarPaletteProps extends BoxProps {
-  colors: Color[];
-  setColor: (index: number, color: Color) => void;
+  swatches: Swatch[];
+  dispatchSwatch: DispatchSwatchFunc;
 }
 
 interface RadarPickerProps extends Omit<BoxProps, 'color'> {
-  color: Color;
-  setColor: (color: Color) => void;
+  swatch: Swatch;
+  dispatchSwatch: DispatchSwatchFunc;
 }
 
-export function RadarPalette({colors, setColor = () => {}, ...props}: RadarPaletteProps) {
+export function RadarPalette({swatches, dispatchSwatch, ...props}: RadarPaletteProps) {
   const ref = useRef<HTMLElement>(null);
   const parentSize = useElementSize(ref);
 
   return (
     <ColorRadarBackground ref={ ref } {...props}>
-      { colors.map((color, index) => (
-        <DraggableRadarChip parentSize={ parentSize } color={ color } setColor={ (color) => setColor(index, color) } key={ index } />
+      { swatches.map((swatch) => (
+        <DraggableRadarChip
+          color={ swatch.color }
+          setColor={ (newColor) => dispatchSwatch({type: "update", id: swatch.id, color: newColor}) }
+          key={ swatch.id }
+          parentSize={ parentSize }
+        />
       ))}
     </ColorRadarBackground>
   )
@@ -129,13 +136,17 @@ function DraggableRadarChip({color, setColor, parentSize}: DraggableRadarChipPro
   );
 }
 
-export function RadarPicker({color, setColor, ...props}: RadarPickerProps) {
+export function RadarPicker({swatch, dispatchSwatch, ...props}: RadarPickerProps) {
   const ref = useRef<HTMLElement>(null);
   const parentSize = useElementSize(ref);
 
   return (
     <ColorRadarBackground ref={ ref } { ...props }>
-      <DraggableRadarChip parentSize={ parentSize } color={ color } setColor={ setColor } />
+      <DraggableRadarChip
+        parentSize={ parentSize }
+        color={ swatch.color }
+        setColor={ (newColor) => dispatchSwatch({type: "update", id: swatch.id, color: newColor}) }
+      />
     </ColorRadarBackground>
   )
 }

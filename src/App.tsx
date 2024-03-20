@@ -2,19 +2,27 @@ import chroma, { Color } from 'chroma-js';
 import { Paper, Tabs, Tab } from '@mui/material';
 import SwatchMode from './modes/SwatchMode';
 import PaletteMode from './modes/PaletteMode';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import SwatchContext, { GenerationMode } from './SwatchContext';
 import type { Swatch } from './SwatchContext';
 import generate from './math/generate';
+import { nanoid } from 'nanoid';
+import { useImmerReducer } from 'use-immer';
+import { swatchReducer } from './SwatchReducer';
 
-const defaultSwatches = [
+const defaultSwatchEntries: [string, Swatch][] = [
   chroma('#383F51'),
   chroma('#DDDBF1'),
   chroma('#3C4F76'),
   chroma('#D1BEB0'),
   chroma('#AB9F9D'),
-].map((color) => ({ color, isLocked: false }));
+].map((color) => {
+  const id = nanoid();
+  return [id, { id, color, isLocked: false }];
+});
+
+const defaultSwatchMap = new Map<string, Swatch>(defaultSwatchEntries);
 
 enum Mode {
   Swatch,
@@ -23,30 +31,22 @@ enum Mode {
 }
 
 function App() {
-  const [swatches, setSwatches] = useState<Swatch[]>(defaultSwatches);
+  const [swatchMap, dispatchSwatch] = useImmerReducer(swatchReducer, defaultSwatchMap);
   const [mode, setMode] = useState<Mode>(Mode.Swatch);
-  const [generationMode, setGenerationMode] = useState<GenerationMode>(GenerationMode.RgbCube);
+  // const [generationMode, setGenerationMode] = useState<GenerationMode>(GenerationMode.RgbCube);
 
   /*
   const generateColors = useCallback((colorsGiven: Color[], nColors: number) => (
     generate(colorsGiven, nColors, generationMode)
   ), [generationMode]);
-
-  const setSwatch = useCallback((index: number, swatch: Swatch) => {
-    return setSwatches((oldSwatches) => {
-      const newSwatches = [...oldSwatches];
-      newValues[index] = value;
-      return newValues;
-    });
-  }, []);
   */
 
   const swatchContextValue = useMemo(() => ({
-    swatches,
-    setSwatches,
+    swatches: Array.from(swatchMap.values()),
+    dispatchSwatch,
   }), [
-    swatches,
-    setSwatches,
+    swatchMap,
+    dispatchSwatch,
   ]);
 
   return (
