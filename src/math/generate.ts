@@ -14,7 +14,7 @@ function rgbCube(rMin: number, gMin: number, bMin: number, rMax: number, gMax: n
   return chroma.rgb(r, g, b);
 }
 
-export default function generate(colorsGiven: Color[], nColors: number, mode: GenerationMode): Color[] {
+export default function generate(colorsGiven: Color[], nColors: number, mode: GenerationMode = GenerationMode.Random): Color[] {
   switch(mode) {
     case GenerationMode.RgbCube:
       {

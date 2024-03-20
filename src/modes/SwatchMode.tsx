@@ -1,7 +1,5 @@
-import { useContext } from 'react';
+import { KeyboardEvent, useCallback, useContext } from 'react';
 import { Stack } from '@mui/material';
-import chroma from 'chroma-js';
-import { mapValues, partition } from 'lodash';
 
 import SwatchContext from '../SwatchContext';
 import type { Swatch } from '../SwatchContext';
@@ -14,8 +12,12 @@ interface SwatchModeProps {
 export default function SwatchMode({ direction }: SwatchModeProps) {
   const context = useContext(SwatchContext);
 
-  const randomizeColors = () => {
-  };
+  const handleKeyUp = useCallback((e: KeyboardEvent) => {
+    if (e.code === 'Space') {
+      context.dispatchSwatch({type: "randomizeMany", ids: "unlocked"});
+      e.preventDefault();
+    }
+  }, [context.dispatchSwatch]);
 
   return (
     <Stack
@@ -24,12 +26,7 @@ export default function SwatchMode({ direction }: SwatchModeProps) {
       justifyContent="center"
       tabIndex={-1}
       sx={{ height: '100%', width: '100%', '&:focus': { outline: 'none' } }}
-      onKeyUp={(e) => {
-        if (e.code === 'Space') {
-          randomizeColors();
-          e.preventDefault();
-        }
-      }}
+      onKeyUp={handleKeyUp}
     >
       { context.swatches.map((swatch: Swatch) => (
         <SwatchBar

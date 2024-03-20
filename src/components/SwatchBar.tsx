@@ -77,13 +77,7 @@ export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: Swat
     useFocusLogic(colorPickerRef, [pickerButtonRef]);
 
   const randomizeColor = useCallback(() => {
-    /* const otherColors = context.swatches
-    .filter(tSwatch => tSwatch != swatch)
-    .map(swatch => swatch.color);
-
-    const color = context.generateColors(otherColors, 1).shift() || chroma("#000000");
-    */
-    dispatchSwatch({type: "update", id: swatch.id, color: swatch.color});
+    dispatchSwatch({type: "randomize", id: swatch.id});
   }, [context, swatch, dispatchSwatch]);
 
 

@@ -1,12 +1,11 @@
-import chroma, { Color } from 'chroma-js';
+import chroma from 'chroma-js';
 import { Paper, Tabs, Tab } from '@mui/material';
 import SwatchMode from './modes/SwatchMode';
 import PaletteMode from './modes/PaletteMode';
 import { useMemo, useState } from 'react';
 
-import SwatchContext, { GenerationMode } from './SwatchContext';
+import SwatchContext from './SwatchContext';
 import type { Swatch } from './SwatchContext';
-import generate from './math/generate';
 import { nanoid } from 'nanoid';
 import { useImmerReducer } from 'use-immer';
 import { swatchReducer } from './SwatchReducer';
@@ -33,13 +32,6 @@ enum Mode {
 function App() {
   const [swatchMap, dispatchSwatch] = useImmerReducer(swatchReducer, defaultSwatchMap);
   const [mode, setMode] = useState<Mode>(Mode.Swatch);
-  // const [generationMode, setGenerationMode] = useState<GenerationMode>(GenerationMode.RgbCube);
-
-  /*
-  const generateColors = useCallback((colorsGiven: Color[], nColors: number) => (
-    generate(colorsGiven, nColors, generationMode)
-  ), [generationMode]);
-  */
 
   const swatchContextValue = useMemo(() => ({
     swatches: Array.from(swatchMap.values()),
