@@ -1,15 +1,13 @@
-import { useCallback, useContext, useRef } from 'react';
+import { useCallback, useContext, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Casino, LockOpenOutlined, LockOutlined, TuneOutlined } from '@mui/icons-material';
 import { Box, Container, IconButton, Stack, Collapse, alpha, styled } from '@mui/material';
 import type { IconButtonProps, ContainerProps } from '@mui/material';
-import chroma, { Color } from 'chroma-js';
+import { Color } from 'chroma-js';
 
 import ColorPicker from './ColorPicker';
 import { useFocusLogic, useHoverLogic } from '../hooks';
 import type { Swatch } from '../SwatchContext';
-import SwatchContext from '../SwatchContext';
-import { RadarPicker } from './ColorRadar';
 import { DispatchSwatchFunc } from '../SwatchReducer';
 
 interface SwatchBarProps {
@@ -67,7 +65,7 @@ const SwatchBarButton = styled(IconButton, {
 });
 
 export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: SwatchBarProps) {
-  const isDark = swatch.color.luminance() > 0.179;
+  const [previewColor, setPreviewColor] = useState<Color | null>(null);
   const SwatchBarContent = isHorizontal ? SwatchBarContentHorizontal : SwatchBarContentVertical;
 
   const colorPickerRef = useRef<HTMLDivElement>(null);
@@ -81,6 +79,7 @@ export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: Swat
 
   const setColor = useCallback((newColor: Color) => {
     dispatchSwatch({type: "update", id: swatch.id, color: newColor});
+    setPreviewColor(null);
   }, [swatch.id]);
 
   const toggleLocked = useCallback(() => {
@@ -91,9 +90,12 @@ export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: Swat
     setIsPickerActive(oldIsPickerActive => !oldIsPickerActive);
   }, []);
 
+  const currentColor = previewColor || swatch.color;
+  const isDark = currentColor.luminance() > 0.179;
+
   return (
     <Box
-      style={{ backgroundColor: swatch.color.hex() }}
+      style={{ backgroundColor: currentColor.hex() }}
       sx={{
         width: '100%',
         height: '100%',
@@ -125,8 +127,9 @@ export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: Swat
         <Collapse in={isPickerActive} sx={{ width: '100%' }}>
           <ColorPicker
             sx={{ width: '100%' }}
-            color={swatch.color}
-            setColor={setColor}
+            color={currentColor}
+            setColor={setPreviewColor}
+            setColorCommitted={ setColor }
             innerRef={colorPickerRef}
             onFocus={handlePickerFocus}
             onBlur={handlePickerBlur}

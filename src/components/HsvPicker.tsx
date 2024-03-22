@@ -1,13 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Paper, Stack } from '@mui/material';
 import type { PaperProps } from '@mui/material';
 import chroma from 'chroma-js';
 import type { Color } from 'chroma-js';
 import GradientSlider from './GradientSlider';
+import { cleanHsv } from '../math/color';
 
 interface HsvPickerProps extends Omit<PaperProps, 'color'> {
   color: Color;
   setColor: (color: Color) => void;
+  setColorCommitted?: (color: Color) => void;
 }
 
 const hueGradientColors = chroma
@@ -15,14 +16,10 @@ const hueGradientColors = chroma
   .mode('hsv')
   .colors(12, null);
 
-function cleanHsv(color: Color) {
-  const [hue, sat, val] = color.hsv();
-  return [isNaN(hue) ? 0 : hue, sat, val];
-}
-
 export default function HsvPicker({
   color,
   setColor,
+  setColorCommitted = () => {},
   ...props
 }: HsvPickerProps) {
   const [currentHue, currentSat, val] = useMemo(() => cleanHsv(color), [color]);
@@ -52,6 +49,10 @@ export default function HsvPicker({
           setColor(chroma.hsv(newHue as number, sat, val));
           setLastHue(newHue as number);
         }}
+        onChangeCommitted={(_event, newHue) => {
+          setColorCommitted(chroma.hsv(newHue as number, sat, val));
+          setLastHue(newHue as number);
+        }}
       />
       <GradientSlider
         gradientColors={satGradientColors}
@@ -64,6 +65,10 @@ export default function HsvPicker({
           setColor(chroma.hsv(hue, newSat as number, val));
           setLastSat(newSat as number);
         }}
+        onChangeCommitted={(_event, newSat) => {
+          setColorCommitted(chroma.hsv(hue, newSat as number, val));
+          setLastSat(newSat as number);
+        }}
       />
       <GradientSlider
         gradientColors={valGradientColors}
@@ -73,6 +78,9 @@ export default function HsvPicker({
         min={0.0}
         max={1.0}
         onChange={(_event, newVal) => {
+          setColor(chroma.hsv(hue, sat, newVal as number));
+        }}
+        onChangeCommitted={(_event, newVal) => {
           setColor(chroma.hsv(hue, sat, newVal as number));
         }}
       />

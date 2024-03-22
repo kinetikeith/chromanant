@@ -5,6 +5,7 @@ import { DraggableCore } from "react-draggable";
 import { Swatch } from "../SwatchContext";
 import { DispatchSwatchFunc } from "../SwatchReducer";
 import { useElementSize } from "../hooks";
+import { cleanHsv } from "../math/color";
 
 const hueGradientColors = chroma
   .scale(['#ff0000', '#00ff00', '#0000ff', '#ff0000'])
@@ -14,7 +15,7 @@ const hueGradientColors = chroma
 const degToRad = Math.PI / 180;
 
 function colorToPositionPolar(color: Color) {
-  const [hue, sat, _val] = color.hsv();
+  const [hue, sat, _val] = cleanHsv(color);
 
   const hueRad = (hue - 90) * degToRad;
 
@@ -29,7 +30,7 @@ function positionPolarToHS(x: number, y: number) {
   const yBi = (y * -2) + 1;
 
   const hue = (Math.atan2(yBi, xBi) / degToRad) + 90;
-  const sat = Math.min(Math.sqrt((yBi * yBi) + (xBi * xBi)), 1);
+  const sat = Math.min(Math.sqrt((yBi * yBi) + (xBi * xBi)), 1)
 
   return [hue, sat];
 }
@@ -83,11 +84,17 @@ export function RadarPalette({swatches, dispatchSwatch, ...props}: RadarPaletteP
 interface DraggableRadarChipProps {
   color: Color;
   setColor: (color: Color) => void;
+  setColorCommitted?: (color: Color) => void;
 
   parentSize: [number, number];
 }
 
-export function DraggableRadarChip({color, setColor, parentSize}: DraggableRadarChipProps) {
+export function DraggableRadarChip({
+  color,
+  setColor,
+  setColorCommitted = () => {},
+  parentSize
+}: DraggableRadarChipProps) {
   const chipRef = useRef<HTMLElement>(null);
   const [x, y] = colorToPositionPolar(color);
 
@@ -98,15 +105,22 @@ export function DraggableRadarChip({color, setColor, parentSize}: DraggableRadar
       nodeRef={ chipRef }
       onDrag={ (_e, data) => {
         const [hue, sat] = positionPolarToHS(data.x / parentWidth, data.y / parentHeight);
-        const newColor = color.set('hsv.h', hue).set('hsv.s', sat);
+        const val = color.get('hsv.v');
+        const newColor = chroma.hsv(hue, sat, val);
         setColor(newColor);
+      } }
+      onStop={ (_e, data) => {
+        const [hue, sat] = positionPolarToHS(data.x / parentWidth, data.y / parentHeight);
+        const val = color.get('hsv.v');
+        const newColor = chroma.hsv(hue, sat, val);
+        setColorCommitted(newColor);
       } }
     >
       <ColorRadarChip
         ref={ chipRef }
         style={{
-          left: x * parentWidth,
-          top: y * parentHeight,
+          left: (x || 0.5) * parentWidth,
+          top: (y || 0.5) * parentHeight,
           backgroundColor: color.hex(),
           width: '30px',
           height: '30px',

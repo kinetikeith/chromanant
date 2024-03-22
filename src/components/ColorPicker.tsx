@@ -9,6 +9,7 @@ import { RadarPicker } from './RadarPicker';
 interface ColorPickerProps extends Omit<PaperProps, 'color'> {
   color: Color;
   setColor: (color: Color) => void;
+  setColorCommitted?: (color: Color) => void;
   innerRef?: Ref<HTMLDivElement>;
 }
 
@@ -24,6 +25,7 @@ enum ColorPickerMode {
 export default function ColorPicker({
   color,
   setColor,
+  setColorCommitted = () => {},
   innerRef,
   ...props
 }: ColorPickerProps) {
@@ -36,8 +38,8 @@ export default function ColorPicker({
   return (
     <Paper {...props} sx={ props.sx } ref={ innerRef }>
       <Stack spacing={1} sx={{ px: 3, py: 2 }}>
-        { mode === ColorPickerMode.Hsv ? <HsvPicker color={color} setColor={ setColor } /> : null }
-        { mode === ColorPickerMode.Radar ? <RadarPicker color={color} setColor={ setColor } /> : null }
+        { mode === ColorPickerMode.Hsv ? <HsvPicker color={color} setColor={ setColor } setColorCommitted={ setColorCommitted } /> : null }
+        { mode === ColorPickerMode.Radar ? <RadarPicker color={color} setColor={ setColor } setColorCommitted={ setColorCommitted }/> : null }
       </Stack>
         <Tabs value={mode} onChange={handleChange} centered>
           <IconTab value={ColorPickerMode.Hsv} icon={ <Tune /> } />
