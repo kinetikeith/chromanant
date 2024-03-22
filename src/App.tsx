@@ -34,7 +34,7 @@ function App() {
   const [mode, setMode] = useState<Mode>(Mode.Swatch);
 
   const swatchContextValue = useMemo(() => ({
-    swatches: Array.from(swatchMap.values()),
+    swatches: Array.from(swatchMap.values()) as Swatch[],
     dispatchSwatch,
   }), [
     swatchMap,

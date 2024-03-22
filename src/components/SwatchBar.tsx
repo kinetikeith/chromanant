@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Casino, LockOpenOutlined, LockOutlined, TuneOutlined } from '@mui/icons-material';
 import { Box, Container, IconButton, Stack, Collapse, alpha, styled } from '@mui/material';
 import type { IconButtonProps, ContainerProps } from '@mui/material';
-import chroma from 'chroma-js';
+import chroma, { Color } from 'chroma-js';
 
 import ColorPicker from './ColorPicker';
 import { useFocusLogic, useHoverLogic } from '../hooks';
@@ -69,17 +69,27 @@ const SwatchBarButton = styled(IconButton, {
 export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: SwatchBarProps) {
   const isDark = swatch.color.luminance() > 0.179;
   const SwatchBarContent = isHorizontal ? SwatchBarContentHorizontal : SwatchBarContentVertical;
-  const context = useContext(SwatchContext);
 
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
-  const [isPickerActive, setIsPickerActive, _handlePickerFocus, _handlePickerBlur] =
+  const [isPickerActive, setIsPickerActive, handlePickerFocus, handlePickerBlur] =
     useFocusLogic(colorPickerRef, [pickerButtonRef]);
 
   const randomizeColor = useCallback(() => {
     dispatchSwatch({type: "randomize", id: swatch.id});
-  }, [context, swatch, dispatchSwatch]);
+  }, [swatch.id]);
 
+  const setColor = useCallback((newColor: Color) => {
+    dispatchSwatch({type: "update", id: swatch.id, color: newColor});
+  }, [swatch.id]);
+
+  const toggleLocked = useCallback(() => {
+    dispatchSwatch({type: "update", id: swatch.id, isLocked: !swatch.isLocked });
+  }, [swatch]);
+
+  const togglePickerActive = useCallback(() => {
+    setIsPickerActive(oldIsPickerActive => !oldIsPickerActive);
+  }, []);
 
   return (
     <Box
@@ -100,9 +110,7 @@ export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: Swat
         <SwatchBarButton
           isDark={isDark}
           style={{ ...(swatch.isLocked && { opacity: '1' }) }}
-          onClick={() => {
-            dispatchSwatch({type: "update", id: swatch.id, isLocked: !swatch.isLocked });
-          }}
+          onClick={toggleLocked}
         >
           {swatch.isLocked ? <LockOutlined /> : <LockOpenOutlined />}
         </SwatchBarButton>
@@ -110,25 +118,19 @@ export default function SwatchBar({ swatch, dispatchSwatch, isHorizontal }: Swat
           style={{ ...(isPickerActive && { opacity: '1' }) }}
           ref={pickerButtonRef}
           isDark={isDark}
-          onClick={() => setIsPickerActive(!isPickerActive)}
+          onClick={togglePickerActive}
         >
           <TuneOutlined />
         </SwatchBarButton>
         <Collapse in={isPickerActive} sx={{ width: '100%' }}>
-          {/* <ColorPicker
+          <ColorPicker
             sx={{ width: '100%' }}
             color={swatch.color}
-            setColor={(newColor) => dispatchSwatch({type: "update", id: swatch.id, color: newColor})}
+            setColor={setColor}
             innerRef={colorPickerRef}
             onFocus={handlePickerFocus}
             onBlur={handlePickerBlur}
             tabIndex={0}
-          />
-          */ }
-          <RadarPicker
-            sx={{ width: '100%' }}
-            swatch={ swatch }
-            dispatchSwatch={ dispatchSwatch }
           />
         </Collapse>
       </SwatchBarContent>

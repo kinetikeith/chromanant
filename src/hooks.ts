@@ -31,7 +31,7 @@ export function useFocusLogic(
       else if (ignoreRefs.some((ref) => ref.current?.contains(event.relatedTarget))) return;
       else setIsActive(false);
     },
-    [mainRef, ignoreRefs],
+    [mainRef, ...ignoreRefs],
   );
 
   return [isActive, setIsActive, handleFocus, handleBlur];
@@ -58,3 +58,20 @@ export function useHoverLogic(delay: number): [boolean, () => void, () => void] 
 
   return [shouldShow, handleMouseMove, handleMouseLeave];
 }
+
+export function useElementSize(ref: RefObject<HTMLElement>): [number, number] {
+  const [elWidth, setElWidth] = useState(1);
+  const [elHeight, setElHeight] = useState(1);
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      setElWidth(ref.current?.offsetWidth || 0);
+      setElHeight(ref.current?.offsetHeight || 0);
+    });
+
+    if(ref.current) resizeObserver.observe(ref.current);
+  });
+
+  return [elWidth, elHeight];
+}
+

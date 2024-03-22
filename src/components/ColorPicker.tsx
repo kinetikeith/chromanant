@@ -1,25 +1,24 @@
-import { useState, useMemo, useEffect } from 'react';
-import type { RefObject } from 'react';
-import { Paper, Stack } from '@mui/material';
+import { Adjust, Tune } from '@mui/icons-material';
+import { Paper, Stack, Tab, Tabs, styled } from '@mui/material';
 import type { PaperProps } from '@mui/material';
-import chroma from 'chroma-js';
 import type { Color } from 'chroma-js';
-import GradientSlider from './GradientSlider';
+import { Ref, useCallback, useState } from 'react';
+import HsvPicker from './HsvPicker';
+import { RadarPicker } from './RadarPicker';
 
 interface ColorPickerProps extends Omit<PaperProps, 'color'> {
-  innerRef?: RefObject<HTMLDivElement>;
   color: Color;
   setColor: (color: Color) => void;
+  innerRef?: Ref<HTMLDivElement>;
 }
 
-const hueGradientColors = chroma
-  .scale(['#ff0000', '#00ff00', '#0000ff', '#ff0000'])
-  .mode('hsv')
-  .colors(12, null);
+const IconTab = styled(Tab)({
+  minWidth: "0",
+});
 
-function cleanHsv(color: Color) {
-  const [hue, sat, val] = color.hsv();
-  return [isNaN(hue) ? 0 : hue, sat, val];
+enum ColorPickerMode {
+  Hsv,
+  Radar,
 }
 
 export default function ColorPicker({
@@ -28,59 +27,22 @@ export default function ColorPicker({
   innerRef,
   ...props
 }: ColorPickerProps) {
-  const [currentHue, currentSat, val] = useMemo(() => cleanHsv(color), [color]);
-  const [lastHue, setLastHue] = useState<number>(0);
-  const [lastSat, setLastSat] = useState<number>(0);
+  const [mode, setMode] = useState<ColorPickerMode>(ColorPickerMode.Hsv);
 
-  const hue = useMemo(() => (isNaN(currentHue) ? lastHue : currentHue), [lastHue, currentHue]);
-  const sat = useMemo(() => (currentSat === 0 ? lastSat : currentSat), [lastSat, currentSat]);
-
-  useEffect(() => {
-    if (!isNaN(currentHue)) setLastHue(currentHue);
-    if (val !== 0) setLastSat(currentSat);
-  }, [currentHue, currentSat, val]);
-
-  const satGradientColors = [chroma.hsv(hue, 0, val), chroma.hsv(hue, 1, val)];
-  const valGradientColors = [chroma.hsv(hue, sat, 0), chroma.hsv(hue, sat, 1)];
+  const handleChange = useCallback((_event: any, newMode: ColorPickerMode) => {
+    setMode(newMode);
+  }, []);
 
   return (
-    <Paper ref={innerRef} {...props} sx={{ px: 3, py: 2, ...props.sx }}>
-      <Stack spacing={1}>
-        <GradientSlider
-          value={hue}
-          min={0}
-          max={359}
-          color={color}
-          gradientColors={hueGradientColors}
-          onChange={(_event, newHue) => {
-            setColor(chroma.hsv(newHue as number, sat, val));
-            setLastHue(newHue as number);
-          }}
-        />
-        <GradientSlider
-          gradientColors={satGradientColors}
-          color={color}
-          value={sat}
-          step={0.01}
-          min={0.0}
-          max={1.0}
-          onChange={(_event, newSat) => {
-            setColor(chroma.hsv(hue, newSat as number, val));
-            setLastSat(newSat as number);
-          }}
-        />
-        <GradientSlider
-          gradientColors={valGradientColors}
-          color={color}
-          value={val}
-          step={0.01}
-          min={0.0}
-          max={1.0}
-          onChange={(_event, newVal) => {
-            setColor(chroma.hsv(hue, sat, newVal as number));
-          }}
-        />
+    <Paper {...props} sx={ props.sx } ref={ innerRef }>
+      <Stack spacing={1} sx={{ px: 3, py: 2 }}>
+        { mode === ColorPickerMode.Hsv ? <HsvPicker color={color} setColor={ setColor } /> : null }
+        { mode === ColorPickerMode.Radar ? <RadarPicker color={color} setColor={ setColor } /> : null }
       </Stack>
+        <Tabs value={mode} onChange={handleChange} centered>
+          <IconTab value={ColorPickerMode.Hsv} icon={ <Tune /> } />
+          <IconTab value={ColorPickerMode.Radar} icon={ <Adjust /> } />
+        </Tabs>
     </Paper>
   );
 }

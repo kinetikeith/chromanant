@@ -1,9 +1,10 @@
 import { Box, BoxProps, styled } from "@mui/material";
 import chroma, { Color } from "chroma-js";
-import { useRef, useState, useEffect, RefObject } from "react";
+import { useRef } from "react";
 import { DraggableCore } from "react-draggable";
 import { Swatch } from "../SwatchContext";
 import { DispatchSwatchFunc } from "../SwatchReducer";
+import { useElementSize } from "../hooks";
 
 const hueGradientColors = chroma
   .scale(['#ff0000', '#00ff00', '#0000ff', '#ff0000'])
@@ -33,23 +34,7 @@ function positionPolarToHS(x: number, y: number) {
   return [hue, sat];
 }
 
-function useElementSize(ref: RefObject<HTMLElement>): [number, number] {
-  const [elWidth, setElWidth] = useState(1);
-  const [elHeight, setElHeight] = useState(1);
-
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      setElWidth(ref.current?.offsetWidth || 0);
-      setElHeight(ref.current?.offsetHeight || 0);
-    });
-
-    if(ref.current) resizeObserver.observe(ref.current);
-  });
-
-  return [elWidth, elHeight];
-}
-
-const ColorRadarBackground = styled(Box)({
+export const ColorRadarBackground = styled(Box)({
   borderRadius: '50%',
   aspectRatio: '1',
   background: `radial-gradient(closest-side, white, rgba(255, 255, 255, 0.0)), conic-gradient(from 180deg, ${hueGradientColors})`,
@@ -74,11 +59,6 @@ const ColorRadarChip = styled('span')({
 
 interface RadarPaletteProps extends BoxProps {
   swatches: Swatch[];
-  dispatchSwatch: DispatchSwatchFunc;
-}
-
-interface RadarPickerProps extends Omit<BoxProps, 'color'> {
-  swatch: Swatch;
   dispatchSwatch: DispatchSwatchFunc;
 }
 
@@ -107,7 +87,7 @@ interface DraggableRadarChipProps {
   parentSize: [number, number];
 }
 
-function DraggableRadarChip({color, setColor, parentSize}: DraggableRadarChipProps) {
+export function DraggableRadarChip({color, setColor, parentSize}: DraggableRadarChipProps) {
   const chipRef = useRef<HTMLElement>(null);
   const [x, y] = colorToPositionPolar(color);
 
@@ -134,19 +114,4 @@ function DraggableRadarChip({color, setColor, parentSize}: DraggableRadarChipPro
       />
     </DraggableCore>
   );
-}
-
-export function RadarPicker({swatch, dispatchSwatch, ...props}: RadarPickerProps) {
-  const ref = useRef<HTMLElement>(null);
-  const parentSize = useElementSize(ref);
-
-  return (
-    <ColorRadarBackground ref={ ref } { ...props }>
-      <DraggableRadarChip
-        parentSize={ parentSize }
-        color={ swatch.color }
-        setColor={ (newColor) => dispatchSwatch({type: "update", id: swatch.id, color: newColor}) }
-      />
-    </ColorRadarBackground>
-  )
 }
