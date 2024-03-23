@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { DraggableCore } from "react-draggable";
 import { Swatch } from "../SwatchContext";
 import { DispatchSwatchFunc } from "../SwatchReducer";
-import { useElementSize } from "../hooks";
+import { useElementSize, usePreservedHsv } from "../hooks";
 import { cleanHsv } from "../math/color";
 
 const hueGradientColors = chroma
@@ -14,9 +14,7 @@ const hueGradientColors = chroma
 
 const degToRad = Math.PI / 180;
 
-function colorToPositionPolar(color: Color) {
-  const [hue, sat, _val] = cleanHsv(color);
-
+function hsToPositionPolar(hue: number, sat: number) {
   const hueRad = (hue - 90) * degToRad;
 
   const x = ((Math.cos(hueRad) * sat) - 1) * -0.5;
@@ -72,7 +70,13 @@ export function RadarPalette({swatches, dispatchSwatch, ...props}: RadarPaletteP
       { swatches.map((swatch) => (
         <DraggableRadarChip
           color={ swatch.color }
-          setColor={ (newColor) => dispatchSwatch({type: "update", id: swatch.id, color: newColor}) }
+          hue={ swatch.color.get('hsv.h') || 0 }
+          sat={ swatch.color.get('hsv.s') || 0}
+          setHueSat={ (newHue, newSat) => dispatchSwatch({
+            type: "update",
+            id: swatch.id,
+            color: chroma.hsv(newHue, newSat, swatch.color.get('hsv.v'))
+          }) }
           key={ swatch.id }
           parentSize={ parentSize }
         />
@@ -82,21 +86,26 @@ export function RadarPalette({swatches, dispatchSwatch, ...props}: RadarPaletteP
 }
 
 interface DraggableRadarChipProps {
+  hue: number;
+  sat: number;
+  setHueSat: (hue: number, sat: number) => void;
+  setHueSatCommitted?: (hue: number, sat: number) => void;
+
   color: Color;
-  setColor: (color: Color) => void;
-  setColorCommitted?: (color: Color) => void;
 
   parentSize: [number, number];
 }
 
 export function DraggableRadarChip({
+  hue,
+  sat,
+  setHueSat,
+  setHueSatCommitted = () => {},
   color,
-  setColor,
-  setColorCommitted = () => {},
   parentSize
 }: DraggableRadarChipProps) {
   const chipRef = useRef<HTMLElement>(null);
-  const [x, y] = colorToPositionPolar(color);
+  const [x, y] = hsToPositionPolar(hue, sat);
 
   const [parentWidth, parentHeight] = parentSize;
 
@@ -104,26 +113,24 @@ export function DraggableRadarChip({
     <DraggableCore
       nodeRef={ chipRef }
       onDrag={ (_e, data) => {
-        const [hue, sat] = positionPolarToHS(data.x / parentWidth, data.y / parentHeight);
-        const val = color.get('hsv.v');
-        const newColor = chroma.hsv(hue, sat, val);
-        setColor(newColor);
+        const [newHue, newSat] = positionPolarToHS(data.x / parentWidth, data.y / parentHeight);
+        setHueSat(newHue, newSat);
       } }
       onStop={ (_e, data) => {
-        const [hue, sat] = positionPolarToHS(data.x / parentWidth, data.y / parentHeight);
-        const val = color.get('hsv.v');
-        const newColor = chroma.hsv(hue, sat, val);
-        setColorCommitted(newColor);
+        const [newHue, newSat] = positionPolarToHS(data.x / parentWidth, data.y / parentHeight);
+        setHueSatCommitted(newHue, newSat);
       } }
     >
       <ColorRadarChip
         ref={ chipRef }
-        style={{
-          left: (x || 0.5) * parentWidth,
-          top: (y || 0.5) * parentHeight,
-          backgroundColor: color.hex(),
+        sx={{
           width: '30px',
           height: '30px',
+        }}
+        style={{
+          left: x * parentWidth,
+          top: y * parentHeight,
+          backgroundColor: color.hex(),
         }}
       />
     </DraggableCore>

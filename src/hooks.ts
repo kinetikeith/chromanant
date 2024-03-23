@@ -1,5 +1,7 @@
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { Color } from 'chroma-js';
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import type { RefObject, Dispatch, SetStateAction, FocusEvent } from 'react';
+import { cleanHsv } from './math/color';
 
 export function useFocusLogic(
   mainRef: RefObject<HTMLElement>,
@@ -75,3 +77,26 @@ export function useElementSize(ref: RefObject<HTMLElement>): [number, number] {
   return [elWidth, elHeight];
 }
 
+export function usePreservedHsv(color: Color): [
+  number,
+  number,
+  number,
+  Dispatch<SetStateAction<number>>,
+  Dispatch<SetStateAction<number>>
+] {
+  const [currentHue, currentSat, val] = useMemo(() => cleanHsv(color), [color]);
+  const [knownHue, setKnownHue] = useState<number>(0);
+  const [knownSat, setKnownSat] = useState<number>(0);
+
+  const hue = useMemo(() => (currentHue === 0 ? knownHue : currentHue), [knownHue, currentHue]);
+  const sat = useMemo(() => (currentSat === 0 ? knownSat : currentSat), [knownSat, currentSat]);
+
+  useEffect(() => {
+    if ((val !== 0) && (currentSat !== 0)) {
+      setKnownHue(currentHue);
+      setKnownSat(currentSat);
+    }
+  }, [currentHue, currentSat, val]);
+
+  return [hue, sat, val, setKnownHue, setKnownSat];
+}
